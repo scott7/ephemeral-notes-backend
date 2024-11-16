@@ -82,7 +82,7 @@ app.delete("/api/delete/:id", async (req, res) => {
 
     if (note) {
       await note.destroy();
-      res.sendStatus(204); // 204 No Content
+      res.sendStatus(204);
     } else {
       res.status(404).json({ message: 'Note not found' });
     }
