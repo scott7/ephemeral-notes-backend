@@ -12,6 +12,8 @@ app.use(bodyParser.urlencoded({
 app.use(express.json());
 app.use(cors());
 
+app.options('*', cors())
+
 const { Note } = require('./models/note');
 
 // routes
