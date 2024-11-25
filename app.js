@@ -1,7 +1,12 @@
+const https = require('https');
+const fs = require('fs');
+
 const createError = require('http-errors');
 const express = require('express');
 const bodyParser = require('body-parser');
 var cors = require('cors');
+
+const http = require('http');
 
 const app = express();
 
@@ -13,6 +18,15 @@ app.use(express.json());
 app.use(cors());
 
 app.options('*', cors())
+
+// Load SSL credentials
+const privateKey = fs.readFileSync('server.key', 'utf8');
+const certificate = fs.readFileSync('server.cert', 'utf8');
+
+const credentials = {
+  key: privateKey,
+  cert: certificate,
+};
 
 const { Note } = require('./models/note');
 
@@ -115,7 +129,21 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-const port = process.env.PORT || 8000;
-app.listen(port, function () {
-  console.log('app is running at port ' + port + '...')
+const httpsServer = https.createServer(credentials, app);
+
+// Start the server
+httpsServer.listen(8443, () => {
+  console.log('HTTPS server running on port 8443');
 });
+
+const port = process.env.PORT || 8000;
+
+// HTTP server to redirect traffic
+http.createServer((req, res) => {
+  res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
+  res.end();
+}).listen(port);
+
+//app.listen(port, function () {
+//  console.log('app is running at port ' + port + '...')
+//});
